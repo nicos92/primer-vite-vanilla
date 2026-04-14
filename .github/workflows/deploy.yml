@@ -1,4 +1,4 @@
-name: Deploy Vite site to Pages
+name: Deploy Astro site to Pages
 
 on:
   push:
@@ -18,23 +18,21 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.32.1
+          version: 9
           run_install: false
 
-      # 🔥 Cache REAL de pnpm (igual que tu Astro)
       - name: Get pnpm store path
         id: pnpm-store
         run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
@@ -48,17 +46,17 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        id: pages
+        uses: actions/configure-pages@v5
 
-      # 🔥 Build Vite
-      - name: Build
+      - name: Build with Astro
         run: pnpm run build
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
@@ -69,7 +67,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     name: Deploy
-
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
