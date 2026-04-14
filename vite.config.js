@@ -2,5 +2,5 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   // Opciones de configuración personalizadas
-  base: '/primer-vite-vanilla/',
+  base: process.env.VITE_BASE_URL,
 })

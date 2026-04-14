@@ -19,6 +19,14 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
 
+    env:
+      # 🧩 Variables públicas (config)
+      VITE_BASE_URL: ${{ vars.BASE_URL }}
+      # VITE_FORMSPREE_URL: ${{ vars.FORMSPREE_URL }}
+
+      # 🔐 Secret (solo si realmente lo usás en build)
+      # GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -27,33 +35,21 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '22'
+          cache: 'pnpm'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.32.1
-          run_install: false
-
-      # 🔥 Cache REAL de pnpm (igual que tu Astro)
-      - name: Get pnpm store path
-        id: pnpm-store
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 🔥 IMPORTANTE: esto falla si Pages no está habilitado
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
-      # 🔥 Build Vite
+      # 🔥 Build con variables disponibles en Vite
       - name: Build
         run: pnpm run build
 
@@ -63,12 +59,13 @@ jobs:
           path: ./dist
 
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
     name: Deploy
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Deploy to GitHub Pages
